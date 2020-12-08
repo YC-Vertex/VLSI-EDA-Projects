@@ -2,9 +2,9 @@
 
 # node data structure
 class Node:
-    def __init__(self, nIndex, edges = []):
+    def __init__(self, nIndex):
         self.index = nIndex
-        self.edges = edges[:]
+        self.edges = list() 
         self.netType = 'np' # undetermined net type
         self.visited = False
     def IsInNet(self, netType):

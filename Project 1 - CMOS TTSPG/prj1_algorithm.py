@@ -41,7 +41,7 @@ def EdgePartition(G):
             sys.exit()
 
 #  series-parallel tree generation
-def SPTGen(G, netType):
+def SPTGeneration(G, netType):
     collection = list()
     terminals = list()
     if netType == 'n':
@@ -142,7 +142,7 @@ def CheckDuality(SPTn, SPTp):
         pDone = [False] * subtreeCount
         for i in range(subtreeCount):
             for j in range(subtreeCount):
-                if SigSetCmp(SPTn.child[i], SPTp.child[j]) and (not nDone[i]) and (not pDone[j]):
+                if SigSetCmp(SPTn.child[i], SPTp.child[j]) and (not nDone[i]) and (not pDone[j]) and (SPTn.signal != SPTp.signal):
                     if CheckDuality(SPTn.child[i], SPTp.child[j]):
                         nDone[i] = True
                         pDone[j] = True
@@ -150,5 +150,3 @@ def CheckDuality(SPTn, SPTp):
             else:
                 return False
         return True
-
-                    

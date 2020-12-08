@@ -45,8 +45,8 @@ def Project1(argc, argv):
         print('----------')
 
     # TTSP detection, SPT generation
-    SPTGen(G, 'n')
-    SPTGen(G, 'p')
+    SPTGeneration(G, 'n')
+    SPTGeneration(G, 'p')
     SPTn = G.AllNodes[0].edges[0].SPTree
     SPTp = G.AllNodes[1].edges[0].SPTree
     
