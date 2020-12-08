@@ -1,33 +1,36 @@
 import sys
 
-from prj1_graph import Node, Edge, graph
-from prj1_input import InputFile, InputConsole
+from prj1_algorithm import *
+from prj1_graph import *
+from prj1_input import *
 
 def Project1(argc, argv):
-    G = graph()
+    G = None
     
     # input
-    if sys.argc >= 2:
-        infile = open(sys.argv[1], 'r')
-        InputFile(G, infile)
+    if argc >= 2:
+        infile = open(argv[1], 'r')
+        G = InputFile(infile)
     else:
-        InputConsole(G, nCount, eCount)
+        G = InputConsole()
             
     # graph partition
-    G.nodes[0].netType = 'n'
-    G.nodes[1].netType = 'p'
-    DfsNodePartition(G, [G.nodes[0]], 'n')
-    for pn in G.nodes.values():
-        if pn.index != 2 and pn.netType == 'np':
-            pn.netType = 'p'
-    for pe in G.edges.values():
-        if pe.netType == 'np':
-            pe.netType = 'p'
-    
+    NodePartition(G, [G.AllNodes[0]], 'n')
+    NodePartition(G, [G.AllNodes[1]], 'p')
+    EdgePartition(G)
+
+    # debug output
+    print(len(G.nNodes), len(G.pNodes))
+    for pn in G.AllNodes.values():
+        print(pn.index, pn.netType)
+    for pe in G.AllEdges:
+        print([pe.nodes[0].index, pe.nodes[1].index], pe.netType)
+
     # TTSP detection, SPT generation
-    T = SPNode()
-    SPTGen(G, T)
+    return
+    SPTGen(G, 'n')
+    SPTGen(G, 'p')
 
 # main
 if __name__ == '__main__':
-    Project1(argc, argv)
+    Project1(len(sys.argv), sys.argv)

@@ -3,18 +3,23 @@
 from prj1_graph import *
 
 # 
-def InputFile(G, infile):
+def InputFile(infile, AllNodes, AllEdges):
+    G = Graph()
     # ...
-    return [eCount, nCount]
+    return G
 
 # 
-def InputConsole(G):
-    eCount = input()
-    nCount = input()
+def InputConsole():
+    G = Graph()
+    eCount = int(input())
+    nCount = int(input())
     for i in range(nCount):
-        G.AddNode(i)
+        nNew = Node(i)
+        G.AllNodes[i] = nNew
     for i in range(eCount):
-        n1 = input()
-        n2 = input()
-        signal = input()
-        G.AddEdge_NodeIndex(signal, n1, n2)
+        n1, n2, signal = input().split()
+        n1 = int(n1)
+        n2 = int(n2)
+        eNew = Edge(SPNode(signal), [G.AllNodes[n1], G.AllNodes[n2]])
+        G.AllEdges.append(eNew)
+    return G
