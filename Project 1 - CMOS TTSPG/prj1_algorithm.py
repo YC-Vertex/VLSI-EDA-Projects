@@ -7,15 +7,21 @@ def NodePartition(G, queue, netType):
     collection = list()
     if netType == 'n':
         collection = G.nNodes
+        forbidden = G.AllNodes[1]
     elif netType == 'p':
         collection = G.pNodes
+        forbidden = G.AllNodes[0]
     else:
-        # ....
-        print('Error')
+        # ...
+        print('Error x: program error')
         sys.exit()
 
     while len(queue) > 0:
         pn = queue.pop(0)
+        # validity check
+        if pn == forbidden:
+            print('Error 1: direct path from n-net to p-net without passing output node')
+            sys.exit()
         # process node
         pn.visited = True
         pn.netType = netType
@@ -31,8 +37,7 @@ def EdgePartition(G):
         elif pe.nodes[0].IsInNet('p') and pe.nodes[1].IsInNet('p'):
             pe.netType = 'p'
         else:
-            # ...
-            print('Error')
+            print('Error 1: direct path from n-net to p-net without passing output node')
             sys.exit()
 
 #  series-parallel tree generation
@@ -47,7 +52,7 @@ def SPTGen(G, netType):
         terminals = [G.AllNodes[1], G.AllNodes[2]]
     else:
         # ...
-        print('Error')
+        print('Error x: program error')
         sys.exit()
 
     queue = collection
@@ -109,3 +114,41 @@ def SPTGen(G, netType):
     # add new edge to nodes
     terminals[0].edges = [eNew]
     terminals[1].edges = [eNew]
+
+def NormalFormTransform(SPT, prvSig):
+    if SPT.isLeaf:
+        return False
+    else:
+        for subtree in SPT.child[:]:
+            if NormalFormTransform(subtree, SPT.signal):
+                SPT.child.remove(subtree)
+                SPT.child.extend(subtree.child)
+        if SPT.signal == prvSig:
+            return True
+        else:
+            return False
+
+def CheckDuality(SPTn, SPTp):
+    if SPTn.isLeaf or SPTp.isLeaf:
+        if SPTn.isLeaf and SPTp.isLeaf:
+            return True
+        else:
+            return False
+    if (not SigSetCmp(SPTn, SPTp)) or (len(SPTn.child) != len(SPTp.child)):
+        return False
+    else:
+        subtreeCount = len(SPTn.child)
+        nDone = [False] * subtreeCount
+        pDone = [False] * subtreeCount
+        for i in range(subtreeCount):
+            for j in range(subtreeCount):
+                if SigSetCmp(SPTn.child[i], SPTp.child[j]) and (not nDone[i]) and (not pDone[j]):
+                    if CheckDuality(SPTn.child[i], SPTp.child[j]):
+                        nDone[i] = True
+                        pDone[j] = True
+                        break
+            else:
+                return False
+        return True
+
+                    

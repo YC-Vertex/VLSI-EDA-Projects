@@ -48,6 +48,10 @@ class SPNode:
         self.signal = signal
         self.isLeaf = isLeaf
         self.child = child[:]
+        if self.isLeaf:
+            self.sigSet = {signal}
+        else:
+            self.sigSet = self.child[0].sigSet.union(self.child[1].sigSet)
     def ShowExpr(self):
         if self.isLeaf:
             print(self.signal, end = '')
@@ -83,3 +87,6 @@ def GetAdjNodes(pn, netType = '', noRep = True):
         return list(set(adj))
     else:
         return adj
+
+def SigSetCmp(SPT1, SPT2):
+    return len(SPT1.sigSet.symmetric_difference(SPT2.sigSet)) == 0
