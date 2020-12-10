@@ -56,10 +56,11 @@ def SPTGeneration(G, netType):
         print('Error x: program error')
         sys.exit()
 
-    queue = collection
+    unsatList = collection
 
-    while len(queue) > 0:
-        pn = queue.pop(0)
+    while len(unsatList) > 0:
+        unsatList = list(set(unsatList))
+        pn = unsatList.pop(0)
         # skip terminals
         if pn in terminals:
             continue
@@ -96,8 +97,8 @@ def SPTGeneration(G, netType):
         n1.edges.append(eNew)
         n2.edges.append(eNew)
         # add nodes to queue
-        queue.append(n1)
-        queue.append(n2)
+        unsatList.append(n1)
+        unsatList.append(n2)
     
     # deal with terminals
     pn = terminals[0]
