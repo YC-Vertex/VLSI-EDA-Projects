@@ -21,7 +21,7 @@ class Edge:
         return (netType in self.netType)
     def ShowExpr(self):
         if (self.netType == 'n'):
-            print('NOT(')
+            print('NOT(', end = '')
             self.SPTree.ShowExpr()
             print(')')
         else:

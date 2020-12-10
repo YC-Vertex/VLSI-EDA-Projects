@@ -93,6 +93,7 @@ def SPTGeneration(G, netType):
         # construct new edge
         SPTNew = SPNode('s', False, [SPTNew1, SPTNew2])
         eNew = Edge(SPTNew, [n1, n2])
+        eNew.netType = netType
         # add new edge to nodes
         n1.edges.append(eNew)
         n2.edges.append(eNew)
@@ -116,6 +117,7 @@ def SPTGeneration(G, netType):
         pe.deleted = True
     # construct new edge
     eNew = Edge(SPTNew, terminals)
+    eNew.netType = netType
     # add new edge to nodes
     terminals[0].edges = [eNew]
     terminals[1].edges = [eNew]
