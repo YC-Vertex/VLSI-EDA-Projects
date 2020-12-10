@@ -1,4 +1,4 @@
-''' ... '''
+''' input '''
 
 from prj1_graph import *
 

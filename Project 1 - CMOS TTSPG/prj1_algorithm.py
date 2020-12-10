@@ -1,5 +1,6 @@
-''' ... '''
+''' algorithm '''
 
+import sys
 from prj1_graph import *
 
 # graph partition
@@ -64,6 +65,9 @@ def SPTGeneration(G, netType):
             continue
         # skip nodes whose degree > 2
         adj = GetAdjNodes(pn, netType)
+        if len(adj) < 2:
+            print('Error 2: floating node, bad circuit definition')
+            sys.exit()
         if len(adj) != 2:
             continue
         
