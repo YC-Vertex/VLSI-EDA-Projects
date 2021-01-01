@@ -49,6 +49,15 @@ class IGNode:
 		self.iEdges = list()
 		self.oEdges = list()
 		self.mob = [-float('inf'), float('inf')]
+	def updateMob(self, minT = -float('inf'), maxT = float('inf')):
+		flag = False
+		if minT > self.mob[0]:
+			self.mob[0] = minT
+			flag = True
+		if maxT < self.mob[1]:
+			self.mob[1] = maxT
+			flag = True
+		return flag
 
 # inequality graph node
 class IGEdge:
@@ -78,4 +87,6 @@ class InequalityGraph:
 	def showEdges(self):
 		for pe in self.AllEdges:
 			print((pe.nodes[0].index, pe.nodes[1].index), pe.delay)
-
+	def showNodes(self):
+		for pn in self.AllNodes.values():
+			print(pn.index, pn.mob)
