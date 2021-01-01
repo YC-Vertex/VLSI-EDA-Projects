@@ -1,0 +1,30 @@
+12
+15
+4
+1 i i1
+2 + c1
+3 + c2
+4 + c8
+5 + c7
+6 * c3
+7 * c4
+8 * c6
+9 * c5
+10 d d1
+11 d d2
+12 o o1
+1 2 from i1 to c1
+6 2 from c3 to c1
+2 3 from c1 to c2
+7 3 from c4 to c2
+3 4 from c2 to c8
+5 4 from c7 to c8
+8 5 from c6 to c7
+9 5 from c5 to c7
+11 6 from d2 to c3
+10 7 from d1 to c4
+10 8 from d1 to c6
+11 9 from d2 to c5
+3 10 from c2 to d1
+10 11 from d1 to d2
+4 12 from c8 to o1
