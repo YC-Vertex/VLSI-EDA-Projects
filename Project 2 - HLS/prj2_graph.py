@@ -67,7 +67,8 @@ class IGEdge:
 
 # inequality graph
 class InequalityGraph:
-	def __init__(self):
+	def __init__(self, T0):
+		self.T0 = T0
 		self.AllNodes = dict()
 		self.AllEdges = list()
 	def addNode(self, index):
