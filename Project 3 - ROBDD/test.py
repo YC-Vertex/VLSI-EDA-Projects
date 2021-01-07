@@ -7,10 +7,20 @@ f = robdd.formulas['F']
 A = robdd.addFormula('A', 'x3', t, f, False)
 robdd.showFormula('A')
 
+A_ = robdd.addFormula('A_', 'x3', t, f, False)
+print(A_ == A)
+
 B = robdd.addFormula('B', 'x3', f, t, False)
 robdd.showFormula('B')
 
 C = robdd.addFormula('C', 'x2', f, B, False)
 robdd.showFormula('C')
+
+D = robdd.addIteFormula('D', 'A', 'C', 'F')
+robdd.showFormula('D')
+
+E = robdd.addIteFormula('E', 'B', 'C', 'F')
+robdd.showFormula('E')
+print(E.node.posCof.node, E.node.negCof.node)
 
 print(robdd.table)

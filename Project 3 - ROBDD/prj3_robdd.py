@@ -18,37 +18,8 @@ class ROBDD:
         self.addLeafNode()
         self.formulas['T'] = Formula(self.leafNode, False)
         self.formulas['F'] = Formula(self.leafNode, True)
-
-    # apply ite(F,G,H) and add the formula to the formula collection self.formulas
-    # calls self.applyIteRec to apply ite recursively
-    def addIteFormula(self, Xstr, Fstr, Gstr, Hstr):
-        F = self.formulas[Fstr]
-        G = self.formulas[Gstr]
-        H = self.formulas[Hstr]
-        X = self.applyIte(F, G, H, 0)
-        self.formulas[Xstr] = X
-
-    # apply ite(F,G,H) recursively
-    # returns a Formula
-    def applyIte(self, F, G, H, varIndex):
-        # check terminal cases
-        if F == self.formulas['T']:
-            return G
-        elif F == self.formulas['F']:
-            return H
-        elif G == self.formulas['T'] and H == self.formulas['F']:
-            return F
-        elif G == self.formulas['F'] and H == self.formulas['T']:
-            return Formula(F.node, not F.compBit)
-        # apply ite recursively
-        var = self.varSeq[varIndex]
-        # 这里有点问题，F.node.posCof的varIndex可能大于varIndex+1（一次跳多级）
-        posCof = self.applyIteRec(F.node.posCof, G.node.posCof, H.node.posCof, varIndex + 1)
-        negCof = self.applyIteRec(F.node.negCof, G.node.negCof, H.node.negCof, varIndex + 1)
-        # check if repetitive
-        node, compBit = self.findNode(var, posCof, negCof)
-        return Formula(node, compBit)
     
+    # add the leaf node '1'
     def addLeafNode(self):
         self.leafNode = Node('1', None, None)
         entry = ('1', -1, -1, -1, -1)
@@ -57,19 +28,21 @@ class ROBDD:
     # add a node to the unique table
     # returns a Node
     def addNode(self, var, posCof, negCof):
-        #pc = posCof
-        #nc = negCof
-        pc = Formula(posCof.node, posCof.compBit)
-        nc = Formula(negCof.node, negCof.compBit)
+        if self.cmpFormula(posCof, negCof):
+            return posCof.node, posCof.compBit
+        pc = self.cpyFormula(posCof)
+        nc = self.cpyFormula(negCof)
+        # guarentee that the posCof edge must be a regular edge
+        cb = pc.compBit
+        if cb:
+            pc.compBit = not(pc.compBit)
+            nc.compBit = not(nc.compBit)
+        # check if repetitive node
         node = self.findNode(var, pc, nc)
         if node != None:
-            return node, False
+            return node, cb
+        # add a new node
         else:
-            # guarentee that the posCof edge must be a regular edge
-            cb = pc.compBit
-            if cb:
-                pc.compBit = not(pc.compBit)
-                nc.compBit = not(nc.compBit)
             entry = (var, id(pc.node), pc.compBit, id(nc.node), nc.compBit)
             # create a new node
             node = Node(var, pc, nc)
@@ -87,12 +60,86 @@ class ROBDD:
         node = self.table.get(entry)
         return node
     
+    # add a new formula to the formula collection
     def addFormula(self, Xstr, var, posCof, negCof, compBit):
         node, cb = self.addNode(var, posCof, negCof)
         X = Formula(node, compBit ^ cb)
         self.formulas[Xstr] = X
         return X
 
+    # apply ite(F,G,H) and add the formula to the formula collection self.formulas
+    # calls self.applyIteRec to apply ite recursively
+    def addIteFormula(self, Xstr, Fstr, Gstr, Hstr):
+        F = self.formulas[Fstr]
+        G = self.formulas[Gstr]
+        H = self.formulas[Hstr]
+        X = self.applyIte(F, G, H, 0)
+        self.formulas[Xstr] = X
+        return X
+
+    # apply ite(F,G,H) recursively
+    # returns a Formula
+    def applyIte(self, F, G, H, varIndex):
+        # check terminal cases
+        if self.cmpFormula(F, self.formulas['T']):
+            return G
+        elif self.cmpFormula(F, self.formulas['F']):
+            return H
+        elif self.cmpFormula(G, self.formulas['T']) and self.cmpFormula(H, self.formulas['F']):
+            return F
+        elif self.cmpFormula(G, self.formulas['F']) and self.cmpFormula(H, self.formulas['T']):
+            return Formula(F.node, not F.compBit)
+        # F.node的index可能大于varIndex（一次跳多级）
+        var = self.varSeq[varIndex]
+        if F.node.var == var:
+            Fpc = F.node.posCof
+            Fnc = F.node.negCof
+            if F.compBit == True:
+                Fpc = self.cpyFormula(Fpc)
+                Fnc = self.cpyFormula(Fnc)
+                Fpc.compBit = not Fpc.compBit
+                Fnc.compBit = not Fnc.compBit
+        else:
+            Fpc = F
+            Fnc = F
+        if G.node.var == var:
+            Gpc = G.node.posCof
+            Gnc = G.node.negCof
+            if G.compBit == True:
+                Gpc = self.cpyFormula(Gpc)
+                Gnc = self.cpyFormula(Gnc)
+                Gpc.compBit = not Gpc.compBit
+                Gnc.compBit = not Gnc.compBit
+        else:
+            Gpc = G
+            Gnc = G
+        if H.node.var == var:
+            Hpc = H.node.posCof
+            Hnc = H.node.negCof
+            if H.compBit == True:
+                Hpc = self.cpyFormula(Hpc)
+                Hnc = self.cpyFormula(Hnc)
+                Hpc.compBit = not Hpc.compBit
+                Hnc.compBit = not Hnc.compBit
+        else:
+            Hpc = H
+            Hnc = H
+        # apply ite recursively
+        posCof = self.applyIte(Fpc, Gpc, Hpc, varIndex + 1)
+        negCof = self.applyIte(Fnc, Gnc, Hnc, varIndex + 1)
+        # check if repetitive
+        node, cb = self.addNode(var, posCof, negCof)
+        return Formula(node, cb)
+    
+    # compares two formulas
+    def cmpFormula(self, F1, F2):
+        return F1.node == F2.node and F1.compBit == F2.compBit
+    
+    # copies a formula
+    def cpyFormula(self, F):
+        return Formula(F.node, F.compBit)
+
+    #
     def showFormula(self, Xstr):
         X = self.formulas[Xstr]
         if X.node.var == '1':
