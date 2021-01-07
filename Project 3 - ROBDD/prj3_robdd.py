@@ -18,6 +18,11 @@ class ROBDD:
         self.addLeafNode()
         self.formulas['T'] = Formula(self.leafNode, False)
         self.formulas['F'] = Formula(self.leafNode, True)
+        self.formulas['1'] = self.formulas['T']
+        self.formulas['0'] = self.formulas['F']
+        for var in varSeq:
+            self.formulas[var] = Formula(Node(var, self.formulas['T'], self.formulas['F']), False)
+            self.formulas['~'+var] = Formula(Node(var, self.formulas['T'], self.formulas['F']), True)
     
     # add the leaf node '1'
     def addLeafNode(self):
@@ -127,8 +132,39 @@ class ROBDD:
         # apply ite recursively
         posCof = self.applyIte(Fpc, Gpc, Hpc, varIndex + 1)
         negCof = self.applyIte(Fnc, Gnc, Hnc, varIndex + 1)
-        # check if repetitive
+        # add the new node
         node, cb = self.addNode(var, posCof, negCof)
+        return Formula(node, cb)
+    
+    # apply cofactor and add the formula to the formula collection self.formulas
+    # calls self.applyCof to apply cofactor recursively
+    def addCofFormula(self, Fstr, tgVar, sign):
+        tgVarIndex = self.varSeq.index(tgVar)
+        F = self.formulas[Fstr]
+        X = self.applyCof(F, tgVarIndex, sign)
+        self.formulas[Fstr + sign + tgVar] = X
+
+    # apply cofactor
+    # returns a Formula
+    def applyCof(self, F, tgVarIndex, sign):
+        # check terminal cases
+        if tgVarIndex < self.varSeq.index(F.node.var):
+            return F
+        pc = self.cpyFormula(F.node.posCof)
+        nc = self.cpyFormula(F.node.negCof)
+        if F.compBit == True:
+            pc.compBit = not pc.compBit
+            nc.compBit = not nc.compBit
+        if tgVarIndex == self.varSeq.index(F.node.var):
+            if sign == '+':
+                return pc
+            else:
+                return nc
+        # apply cofactor
+        posCof = self.applyCof(pc)
+        negCof = self.applyCof(nc)
+        # add the new node
+        node, cb = self.addNode(F.node.var, posCof, negCof)
         return Formula(node, cb)
     
     # compares two formulas

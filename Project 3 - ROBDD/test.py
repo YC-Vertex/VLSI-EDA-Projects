@@ -21,6 +21,15 @@ robdd.showFormula('D')
 
 E = robdd.addIteFormula('E', 'B', 'C', 'F')
 robdd.showFormula('E')
-print(E.node.posCof.node, E.node.negCof.node)
+
+robdd.addCofFormula('B', 'x3', '+')
+robdd.showFormula('B+x3')
+
+robdd.addCofFormula('E', 'x2', '+')
+robdd.showFormula('E+x2')
+
+robdd.addCofFormula('E', 'x2', '-')
+robdd.showFormula('E-x2')
+
 
 print(robdd.table)
