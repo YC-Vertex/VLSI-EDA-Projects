@@ -3,18 +3,22 @@ import copy
 
 from prj2_graph import *
 
-def search(DFG, IG, pstart, pn, dt):
-	if pn.op in ['i', 'o']:
-		return
-	# delay unit found
-	if pn.op == 'd':
-		for pe in pn.oEdges:
-			search(DFG, IG, pstart, pe.nodes[1], dt - DFG.T0)
-	# function unit (+/*) found
-	else:
-		IG.addEdge(pstart.index, pn.index, dt)
 
 def GenerateIG(DFG):
+	# helper function
+	def search(DFG, IG, pstart, pn, dt):
+		if pn.op in ['i', 'o']:
+			return
+		# delay unit found
+		if pn.op == 'd':
+			for pe in pn.oEdges:
+				search(DFG, IG, pstart, pe.nodes[1], dt - DFG.T0)
+		# function unit (+/*) found
+		else:
+			IG.addEdge(pstart.index, pn.index, dt)
+		return
+
+	# GenerateIG
 	IG = InequalityGraph(DFG.T0)
 	for pn in DFG.AllNodes.values():
 		if pn.op in ['i', 'o', 'd']:
@@ -22,6 +26,7 @@ def GenerateIG(DFG):
 		for pe in pn.oEdges:
 			search(DFG, IG, pn, pe.nodes[1], DFG.getDelay(pn.op))
 	return IG
+
 
 def ASAP(IG, S):
 	while len(S) > 0:
@@ -33,6 +38,7 @@ def ASAP(IG, S):
 					Snew.append(pe.nodes[1])
 		S = Snew
 
+
 def ALAP(IG, S):
 	while len(S) > 0:
 		Snew = list()
@@ -43,12 +49,14 @@ def ALAP(IG, S):
 					Snew.append(pe.nodes[0])
 		S = Snew
 
+
 def GenerateFirstSolution(IG):
 	while True:
 		mobList = sorted(IG.AllNodes.items(), key = lambda kv : (kv[1].mob[1] - kv[1].mob[0], kv[0]))
 		for i in range(len(mobList)):
 			mobList[i] = (mobList[i][0], mobList[i][1].mob[1] - mobList[i][1].mob[0])
 
+		# find the operation with the lowest mobility
 		if mobList[0][1] < 0:
 			return False
 		for item in mobList:
@@ -57,6 +65,7 @@ def GenerateFirstSolution(IG):
 		else:
 			return True
 
+		# schedule the operation
 		index = item[0]
 		pn = IG.AllNodes[index]
 		if pn.mob[0] == -float('inf') and pn.mob[1] == float('inf'):
@@ -69,8 +78,10 @@ def GenerateFirstSolution(IG):
 			t = random.randint(pn.mob[0], pn.mob[1])
 		pn.mob = [t, t]
 
+		# update
 		ASAP(IG, [pn])
 		ALAP(IG, [pn])
+
 
 def GetCost(IG, DFG):
 	T0 = DFG.T0
@@ -85,11 +96,13 @@ def GetCost(IG, DFG):
 			multCount[(t+1) % T0] += 1
 	return max(sumCount) + 2 * max(multCount)
 
+
 def GetSchedule(IG):
 	schedule = dict()
 	for pn in IG.AllNodes.values():
 		schedule[pn.index] = pn.mob[0]
 	return schedule
+
 
 def SearchNeighborhood(IG, DFG, tabuList):
 	T0 = DFG.T0
@@ -109,14 +122,15 @@ def SearchNeighborhood(IG, DFG, tabuList):
 		ALAP(tempIG, S)
 		# 对调度进行修正
 		if target.mob[0] == -float('inf') and target.mob[1] == float('inf'):
-			target.mob = [0, T0 - 1]
+			target.mob = [-T0, T0 - 1]
 		elif target.mob[0] == -float('inf'):
-			target.mob[0] = target.mob[1] - T0 + 1
+			target.mob[0] = target.mob[1] - 2 * T0 + 1
 		elif target.mob[1] == float('inf'):
-			target.mob[1] = target.mob[0] + T0 - 1
+			target.mob[1] = target.mob[0] + 2 * T0 - 1
 		# 找到改变pn结点时，邻域中的最优解
 		bestT = None
 		mobBackup = target.mob[:]
+		cost = float('inf')
 		for t in range(target.mob[0], target.mob[1] + 1):
 			target.mob = [t, t]
 			# 避开被标记为tabu的解
@@ -135,6 +149,7 @@ def SearchNeighborhood(IG, DFG, tabuList):
 
 	return bestSol, minCost
 
+
 def TabuSearch(IG, DFG, iters, tabuSize):
 	T0 = DFG.T0
 
@@ -147,20 +162,53 @@ def TabuSearch(IG, DFG, iters, tabuSize):
 	# 搜索
 	for i in range(iters):
 		bestN, costN = SearchNeighborhood(IG, DFG, tabuList)
+		IG = bestN
 		# 如果邻域内没有可移动的点，则退出
 		if bestN == None:
 			break
 		# 如果邻域内最优解同时也是全局优解，则更新
 		if costN < minCost:
 			minCost = costN
-			bestSol = bestN
+			bestSol = copy.deepcopy(bestN)
 		# 将访问记录至tabu列表
 		tabuList.append(GetSchedule(bestN))
 		if len(tabuList) > tabuSize:
 			tabuList.pop(0)
+		print(f'Iter #{i}: minCost = {minCost}, bestN = {GetSchedule(bestN)}, costN = {costN}')
+	print()
 
 	return bestSol
 
-def Assignment(sol, DFG):
+
+
+def GenerateICG(IG, DFG, op):
 	T0 = DFG.T0
-	return
+
+	indexList = list()
+	for pn in DFG.AllNodes.values():
+		if pn.op == op:
+			indexList.append(pn.index)
+	ICG = IncompatibilityGraph(indexList)
+
+	delay = DFG.getDelay(op)
+	for i in indexList:
+		for j in indexList:
+			if i != j:
+				time = [False] * T0
+				pi = IG.AllNodes[i]
+				pj = IG.AllNodes[j]
+				for t in range(pi.mob[0], pi.mob[0] + delay):
+					time[t%T0] = True
+				for t in range(pj.mob[0], pj.mob[0] + delay):
+					if time[t%T0] == True:
+						ICG.AllNodes[i].icNodes.append(ICG.AllNodes[j])
+
+	return ICG
+
+
+def Assignment(IG, DFG):
+	SumICG = GenerateICG(IG, DFG, '+')
+	MultICG = GenerateICG(IG, DFG, '*')
+	SumICG.assign()
+	MultICG.assign()
+	return SumICG, MultICG

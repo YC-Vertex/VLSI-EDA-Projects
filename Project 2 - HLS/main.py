@@ -16,8 +16,9 @@ def Project2(argc, argv):
 	# transform DFG into inequality graph
 	IG = GenerateIG(DFG)
 	# debug output
-	print('IG generation:')
+	print('----- Inequality Graph -----')
 	IG.showEdges()
+	print('----------------------------\n')
 
     # select reference node
 	# nRef = list(IG.AllNodes.values())[0]
@@ -31,24 +32,32 @@ def Project2(argc, argv):
 	S = [nRef]
 	ALAP(IG, S)
 	# debug output
-	print('ASAP & ALAP scheduling:')
+	print('----- ASAP & ALAP scheduling -----')
 	IG.showNodes()
+	print('----------------------------------\n')
 
 	# get first solution
 	GenerateFirstSolution(IG)
 	# debug output
-	print('first solution:')
+	print('----- initial solution -----')
 	IG.showNodes()
+	print('----------------------------\n')
 
 	# Tabu search
-	IG = TabuSearch(IG, DFG, 100, 10)
-	schedule = GetSchedule(IG)
+	IG = TabuSearch(IG, DFG, 25, 8)
 	# debug output
-	print('optimal solution:')
-	IG.showNodes()
+	print('----- optimal schedule -----')
+	IG.showSchedule()
+	print('----------------------------\n')
 
 	# assignment
-	assignment = Assignment(schedule, DFG)
+	SumICG, MultICG = Assignment(IG, DFG)
+	print('----- assignment -----')
+	print(f'\'+\' ops: ({SumICG.colorUsed.index(False) if False in SumICG.colorUsed else len(SumICG.colorUsed)} FUs used)')
+	SumICG.showNodes()
+	print(f'\'*\' ops: ({MultICG.colorUsed.index(False) if False in MultICG.colorUsed else len(MultICG.colorUsed)} FUs used)')
+	MultICG.showNodes()
+	print('----------------------\n')
 
 
 if __name__ == '__main__':
