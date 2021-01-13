@@ -8,10 +8,10 @@ Documentation: https://www.notion.so/vertexyc/EDA-project-1-9a9797617bc049119ce4
 
 Documentation: https://www.notion.so/vertexyc/EDA-project-2-fef1607ca8dc43cd8d5606f5272bda02
 
-## Project 3: ROBDD
+## Project 3: ROBDD w/ Complement Edge
 
 Documentation: https://www.notion.so/vertexyc/EDA-project-3-0d513df1fba949569df6a60081f625a6
 
 ## Project 4: Placement w/ Simulated Annealing
 
-实在太简单了，有点不想写doc
+Documentation: https://www.notion.so/vertexyc/EDA-project-4-e2afd9b937894e3db03a6d14593d83f5
